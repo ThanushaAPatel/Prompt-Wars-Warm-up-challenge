@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MoodMeal AI - Personal Ayurvedic & nutrition-aligned cooking advisor. Get recipes, shopping lists, and budget feasibility checks personalized to your exercise, mood, and weather.">
+  <title>MoodMeal AI — Smart Cooking Advisor & Wellness Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- App Header & Navigation -->
+  <header class="app-header">
+    <div class="logo-container" onclick="app.resetToHome()">
+      <span class="logo-icon">🍲</span>
+      <span class="logo-text">MoodMeal <span style="font-weight: 300; font-size: 1.1rem; color: var(--text-muted);">AI</span></span>
+    </div>
+    
+    <!-- Primary Navigation Links -->
+    <nav class="nav-links-container">
+      <button class="nav-link-btn" id="nav-pref-btn" onclick="app.showOnboarding()">🎯 Preferences</button>
+      <button class="nav-link-btn" id="nav-checkin-btn" onclick="app.showCheckIn()">🔄 Daily Check-In</button>
+      <button class="nav-link-btn" id="nav-dash-btn" onclick="app.showResultsView()">📊 Dashboard</button>
+    </nav>
+
+    <div class="nav-actions-mobile">
+      <button class="btn btn-secondary btn-sm" onclick="app.showOnboarding()">⚙️</button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-container">
+
+    <!-- VIEW 1: Onboarding (Preferences Setup) -->
+    <section id="view-onboarding" class="view panel-card">
+      <h2 class="panel-title">Nutrition & Wellness Profile</h2>
+      <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Adjust your nutritional baseline. Skip at any time for instant recommendations.</p>
+      
+      <form id="onboarding-form" onsubmit="app.saveOnboarding(event)">
+        <!-- Diet Type Selector -->
+        <div class="form-group">
+          <label class="form-label">Dietary Pattern</label>
+          <div class="pill-grid" id="diet-pill-grid">
+            <div class="pill-option selected" data-value="vegetarian">🌱 Vegetarian</div>
+            <div class="pill-option" data-value="vegan">🌿 Vegan</div>
+            <div class="pill-option" data-value="eggetarian">🥚 Eggetarian</div>
+            <div class="pill-option" data-value="non-veg">🍗 Non-Vegetarian</div>
+          </div>
+        </div>
+
+        <!-- Health Goals -->
+        <div class="form-group">
+          <label class="form-label">Primary Health Goal</label>
+          <select id="goal-select" class="form-select">
+            <option value="general">General Wellness & Vitality</option>
+            <option value="weight-loss">Weight Management (Lighter load)</option>
+            <option value="muscle-gain">Muscle Support (High protein)</option>
+          </select>
+        </div>
+
+        <!-- Allergies / Intolerances -->
+        <div class="form-group">
+          <label class="form-label">Allergies & Exclusions</label>
+          <div class="pill-grid" id="allergy-pill-grid">
+            <div class="pill-option" data-value="nuts">🥜 Nuts</div>
+            <div class="pill-option" data-value="dairy">🥛 Dairy/Lactose</div>
+            <div class="pill-option" data-value="gluten">🌾 Gluten</div>
+            <div class="pill-option" data-value="soy">🫘 Soy</div>
+          </div>
+          <input type="text" id="custom-allergy-input" class="form-input" placeholder="Add custom ingredient exclusions (type & press Enter)" style="margin-top: 0.75rem;">
+        </div>
+
+        <!-- Kids Personalization Block -->
+        <div class="form-group" style="background-color: var(--accent-blue-light); padding: 1.25rem; border-radius: var(--border-radius-md); border: 1px solid var(--border-color); margin-top: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="form-label" style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">👶 Include Kid's Section</span>
+            <input type="checkbox" id="kids-toggle" style="width: 22px; height: 22px; cursor: pointer;" onchange="app.toggleKidsLayer(this.checked)">
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">Recommend age-tailored kid bites & snacks aligning with your dietary filters.</p>
+          
+          <div id="kids-subform" style="display: none; margin-top: 1rem; animation: fadeIn 0.3s ease-out;">
+            <label class="form-label" for="kids-age-select">Child's Age Range</label>
+            <select id="kids-age-select" class="form-select">
+              <option value="2">Toddler (Ages 1 - 4) — Soft chew, high fiber</option>
+              <option value="6">Child (Ages 5 - 8) — Sneaked greens, micro-nutrients</option>
+              <option value="10">Tween (Ages 9 - 12) — Brain-boosting macros, high energy</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Medical Conditions Disclaimer Alert -->
+        <div class="form-group" style="margin-top: 1.5rem;">
+          <label class="form-label">Health Conditions to Accommodate (Optional)</label>
+          <div class="pill-grid" id="condition-pill-grid">
+            <div class="pill-option" data-value="diabetes">🩸 Diabetes (Low Glycemic)</div>
+            <div class="pill-option" data-value="high BP">🫀 High Blood Pressure</div>
+            <div class="pill-option" data-value="PCOS">🌸 PCOS / Hormonal Balance</div>
+            <div class="pill-option" data-value="lactose intolerance">🥛 Lactose Intolerance</div>
+          </div>
+          <div class="disclaimer-card" style="margin: 1rem 0 0; padding: 0.75rem 1rem;">
+            <span class="disclaimer-icon" style="font-size: 1.2rem;">⚠️</span>
+            <div class="disclaimer-text">
+              <p style="font-size: 0.8rem; line-height: 1.4;"><strong>Medical Notice:</strong> If you select a serious condition, MoodMeal will accommodate general food-character principles (e.g., lower glycemic index foods) but you should always consult your medical professional before making major dietary adjustments.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Budget & City -->
+        <div class="split-layout">
+          <div class="form-group">
+            <label class="form-label" for="budget-input">Daily Food Budget ($)</label>
+            <input type="number" id="budget-input" class="form-input" value="20" min="5" max="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="city-input">Home City (For Weather Forecast)</label>
+            <input type="text" id="city-input" class="form-input" value="New York" placeholder="e.g. San Francisco, London">
+          </div>
+        </div>
+
+        <!-- Ayurvedic Toggle -->
+        <div class="form-group" style="background-color: var(--secondary-light); padding: 1.25rem; border-radius: var(--border-radius-md); border: 1px solid var(--border-color); margin-top: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span class="form-label" style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">🕉️ Ayurvedic Wellness Layer</span>
+            <input type="checkbox" id="ayurvedic-toggle" style="width: 22px; height: 22px; cursor: pointer;" onchange="app.toggleAyurvedicLayer(this.checked)">
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Unlock traditional wellness insights based on cooling/warming energies. Disclaimed separately from nutrition science.</p>
+          
+          <div id="ayurvedic-subform" style="display: none; animation: fadeIn 0.3s ease-out;">
+            <label class="form-label">Estimate Your Dominant Dosha Tendency</label>
+            <div class="pill-grid" id="dosha-pill-grid">
+              <div class="pill-option selected" data-value="vata">🍃 Vata (Creative, dry skin, sensitive digestion, feels cold easily)</div>
+              <div class="pill-option" data-value="pitta">🔥 Pitta (Determined, warm body, strong appetite, hot weather sensitivity)</div>
+              <div class="pill-option" data-value="kapha">💧 Kapha (Calm, solid build, slow digestion, feels heavy/sluggish easily)</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="app.skipOnboarding()">Skip & Plan Now</button>
+          <button type="submit" class="btn">Save & Proceed</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- VIEW 2: Daily Check-In (Mood & Activity context) -->
+    <section id="view-checkin" class="view panel-card">
+      <h2 class="panel-title">Daily Cooking & Activity Check-In</h2>
+      <p style="margin-bottom: 2rem; color: var(--text-muted);">How is your day shaping up? Let us adjust your meals to your mood and workouts.</p>
+
+      <form id="checkin-form" onsubmit="app.generatePlan(event)">
+        <!-- Activity Selector (Gym/Yoga/Cardio/Rest) -->
+        <div class="form-group">
+          <label class="form-label">Today's Activity / Exercise</label>
+          <div class="pill-grid" id="activity-pill-grid" style="margin-top: 0.5rem;">
+            <div class="pill-option selected" data-value="gym">🏋️ Gym / Weights (High Protein Target)</div>
+            <div class="pill-option" data-value="yoga">🧘 Yoga / Flexibility (Sattvic & Light Target)</div>
+            <div class="pill-option" data-value="cardio">🏃 Cardio / Endurance (High Complex Carbs)</div>
+            <div class="pill-option" data-value="rest">🛋️ Rest / No Exercise (Balanced Maintenance)</div>
+          </div>
+        </div>
+
+        <!-- Mood Selector -->
+        <div class="form-group" style="margin-top: 2rem;">
+          <label class="form-label">How is your mood right now?</label>
+          <div class="mood-picker-grid" id="mood-picker">
+            <div class="mood-card selected" data-value="stressed">
+              <span class="mood-emoji">💆</span>
+              <span class="mood-name">Stressed</span>
+            </div>
+            <div class="mood-card" data-value="low-energy">
+              <span class="mood-emoji">🔋</span>
+              <span class="mood-name">Low-Energy</span>
+            </div>
+            <div class="mood-card" data-value="celebratory">
+              <span class="mood-emoji">🥳</span>
+              <span class="mood-name">Celebratory</span>
+            </div>
+            <div class="mood-card" data-value="lazy">
+              <span class="mood-emoji">🦥</span>
+              <span class="mood-name">Lazy / Quick</span>
+            </div>
+            <div class="mood-card" data-value="motivated">
+              <span class="mood-emoji">⚡</span>
+              <span class="mood-name">Motivated</span>
+            </div>
+            <div class="mood-card" data-value="under-the-weather">
+              <span class="mood-emoji">🤒</span>
+              <span class="mood-name">Under the Weather</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Occasion / Day Context -->
+        <div class="form-group" style="margin-top: 2rem;">
+          <label class="form-label">What is the context of your day?</label>
+          <div class="pill-grid" id="occasion-pill-grid">
+            <div class="pill-option selected" data-value="busy-workday">💼 Busy Workday (Quick prep &lt;= 20m)</div>
+            <div class="pill-option" data-value="rest-day">🛋️ Relaxed Rest Day</div>
+            <div class="pill-option" data-value="workout-day">🏋️ Workout / Commute Day</div>
+            <div class="pill-option" data-value="traveling">✈️ Traveling / On the go</div>
+          </div>
+        </div>
+
+        <!-- Weather Status & Override -->
+        <div class="form-group" style="margin-top: 2rem;">
+          <label class="form-label">Current Weather Info</label>
+          <div class="weather-status-box">
+            <div class="weather-info">
+              <span class="weather-icon" id="weather-display-icon">☀️</span>
+              <div>
+                <div class="weather-temp" id="weather-display-temp">--°C</div>
+                <div class="weather-desc" id="weather-display-desc">Fetching weather...</div>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="app.toggleWeatherOverride()">Edit Weather</button>
+          </div>
+          
+          <div id="weather-override-fields" style="display: none; padding: 1rem; background-color: var(--bg-primary); border-radius: var(--border-radius-md); border: 1px solid var(--border-color); animation: fadeIn 0.3s ease-out;">
+            <div class="split-layout">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Temperature (°C)</label>
+                <input type="number" id="override-temp" class="form-input" value="20" onchange="app.handleWeatherOverrideChange()">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Precipitation</label>
+                <select id="override-rain" class="form-select" onchange="app.handleWeatherOverrideChange()">
+                  <option value="dry">Dry / Sunny</option>
+                  <option value="rainy">Rainy / Rainy Spells</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 2.5rem; text-align: center;">
+          <button type="submit" class="btn btn-lg" style="padding: 1rem 3.5rem; font-size: 1.15rem;">✨ Generate Plan</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- VIEW 3: Dashboard & Results (Meal Plan & Grocery List) -->
+    <section id="view-results" class="view">
+      
+      <!-- AI Advisor Reasoning Banner -->
+      <div class="engine-reasoning-card">
+        <span class="reasoning-icon">🌿</span>
+        <div>
+          <strong style="display: block; margin-bottom: 0.2rem; font-size: 1.1rem; color: var(--primary);">MoodMeal Recommendation:</strong>
+          <span class="reasoning-text" id="advisor-reasoning-text">Tailoring macro thresholds for your exercise profiles...</span>
+        </div>
+      </div>
+
+      <!-- Dashboard Layout: Sidebar Index, Main Content, Sidebar Tracking Targets -->
+      <div class="dashboard-layout">
+        
+        <!-- SIDEBAR INDEX (Left column on desktop for category jumping) -->
+        <div class="dashboard-index-sidebar" id="dashboard-nav-index">
+          <h3 class="brand-font" style="font-size: 1.25rem; margin-bottom: 1rem; border-bottom: 1.5px solid var(--border-color); padding-bottom: 0.5rem; color: var(--text-main);">
+            📌 Menu Index
+          </h3>
+          <ul class="index-nav-list">
+            <li><a href="javascript:void(0)" onclick="app.scrollToSection('meal-breakfast')" class="index-nav-link active" id="idx-b">🍳 Breakfast</a></li>
+            <li><a href="javascript:void(0)" onclick="app.scrollToSection('meal-lunch')" class="index-nav-link" id="idx-l">🍲 Lunch</a></li>
+            <li><a href="javascript:void(0)" onclick="app.scrollToSection('meal-dinner')" class="index-nav-link" id="idx-d">🥗 Dinner</a></li>
+            <li><a href="javascript:void(0)" onclick="app.scrollToSection('meal-snack')" class="index-nav-link" id="idx-s">🍎 Healthy Snacks</a></li>
+            <li><a href="javascript:void(0)" onclick="app.scrollToSection('meal-beverage')" class="index-nav-link" id="idx-v">🍹 Beverages & Drinks</a></li>
+            <li id="idx-kids-container" style="display: none;"><a href="javascript:void(0)" onclick="app.scrollToSection('meal-kids')" class="index-nav-link" id="idx-k">👶 Kids Corner</a></li>
+          </ul>
+        </div>
+
+        <!-- MAIN SECTION: Tabs & Cards -->
+        <div class="dashboard-main">
+          
+          <!-- View Toggle Tabs -->
+          <div class="tab-container">
+            <button class="tab-btn active" id="tab-meals-btn" onclick="app.switchTab('meals')">🍽️ Recommended Meals</button>
+            <button class="tab-btn" id="tab-grocery-btn" onclick="app.switchTab('grocery')">🛒 Shopping List</button>
+            
+            <button class="btn btn-secondary btn-sm" onclick="app.copyGroceryList()" id="copy-grocery-btn" style="margin-left: auto; display:none; gap:0.4rem; padding:0.4rem 1rem; border-radius:20px;">📋 Copy List</button>
+            <button class="btn btn-secondary btn-sm" onclick="app.regeneratePlan()" id="reroll-plan-btn" style="margin-left: auto;">🎲 Reroll Plan</button>
+          </div>
+
+          <!-- TAB 1 CONTENT: Meal Cards -->
+          <div id="tab-meals-content" class="tab-content active">
+            
+            <!-- Unique Feature 1: Mindful Eating Breathing Widget -->
+            <div class="mindful-breathing-card" id="breathing-widget">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <h4 class="brand-font" style="font-size:1.15rem; margin:0; color:var(--accent-green);">🧘 Mindful Digestion Prep</h4>
+                  <p style="font-size:0.82rem; color:var(--text-muted); margin:0.1rem 0 0;">Focus your nervous system for 30s to optimize enzyme release.</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="app.toggleBreathingExercise()" id="breathing-toggle-btn" style="padding:0.4rem 1rem; font-size:0.8rem; border-radius:12px; font-weight:600;">Start 4-7-8 Breath</button>
+              </div>
+              <div id="breathing-exercise-box" style="display:none; text-align:center; padding:1.5rem 1rem 0.5rem; animation:fadeIn 0.3s ease-out;">
+                <div class="breathing-circle-outer">
+                  <div class="breathing-circle" id="breathing-circle-inner"></div>
+                  <span class="breathing-label" id="breathing-status-text">Inhale</span>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.75rem; font-style:italic;" id="breathing-instructions">Get ready...</p>
+              </div>
+            </div>
+
+            <div class="meal-plan-grid">
+              
+              <!-- Breakfast Section -->
+              <div id="meal-breakfast">
+                <h3 class="section-divider-title">Breakfast Plan</h3>
+                <div class="meal-card-slot" id="breakfast-slot"></div>
+              </div>
+
+              <!-- Lunch Section -->
+              <div id="meal-lunch">
+                <h3 class="section-divider-title">Lunch Plan</h3>
+                <div class="meal-card-slot" id="lunch-slot"></div>
+              </div>
+
+              <!-- Dinner Section -->
+              <div id="meal-dinner">
+                <h3 class="section-divider-title">Dinner Plan</h3>
+                <div class="meal-card-slot" id="dinner-slot"></div>
+              </div>
+
+              <!-- Healthy Snack Section -->
+              <div id="meal-snack">
+                <h3 class="section-divider-title">Healthy Snack</h3>
+                <div class="meal-card-slot" id="snack-slot"></div>
+              </div>
+
+              <!-- Beverage Section -->
+              <div id="meal-beverage">
+                <h3 class="section-divider-title">Beverages & Drinks</h3>
+                <div class="meal-card-slot" id="beverage-slot"></div>
+              </div>
+
+              <!-- Kids Section (Conditional) -->
+              <div id="meal-kids" style="display: none;">
+                <h3 class="section-divider-title" style="color: var(--accent-blue);">Kids Corner Selection</h3>
+                <div class="meal-card-slot" id="kids-slot"></div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TAB 2 CONTENT: Grocery Checklist -->
+          <div id="tab-grocery-content" class="tab-content">
+            <div id="grocery-list-container">
+              <!-- Grouped grocery items -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SIDEBAR: Metrics & Budget Checklist -->
+        <div class="dashboard-sidebar">
+          
+          <!-- Section 1: Fitness & Exercise Target -->
+          <div class="sidebar-card">
+            <h3 class="brand-font" style="font-size: 1.3rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;" id="exercise-sidebar-title">
+              🏋️ Fitness Target
+            </h3>
+            
+            <!-- Protein Tracker -->
+            <div class="macro-progress-container">
+              <div class="macro-label-row">
+                <span class="macro-label-name">Protein (Muscle Repair)</span>
+                <span class="macro-label-value" id="protein-total-val">0g / 70g</span>
+              </div>
+              <div class="macro-progress-bar-bg">
+                <div class="macro-progress-bar-fill protein-fill" id="protein-progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Carbohydrates Tracker -->
+            <div class="macro-progress-container" style="margin-top: 1rem;">
+              <div class="macro-label-row">
+                <span class="macro-label-name">Carbs (Glycogen Stamina)</span>
+                <span class="macro-label-value" id="carbs-total-val">0g / 150g</span>
+              </div>
+              <div class="macro-progress-bar-bg">
+                <div class="macro-progress-bar-fill carbs-fill" id="carbs-progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="macro-explanation-box" id="macro-target-feedback" style="margin-top: 1rem;">
+              Checking targets...
+            </div>
+          </div>
+
+          <!-- Section 2: Daily Budget Feasibility Tracker -->
+          <div class="sidebar-card">
+            <h3 class="brand-font" style="font-size: 1.3rem; margin-bottom: 1rem;">💰 Budget Tracker</h3>
+            
+            <div class="budget-meter" id="budget-meter-circle">
+              <span class="meter-value" id="budget-total-cost">$0.00</span>
+              <span class="meter-label">Total Cost</span>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 1rem;">
+              <div class="budget-status-pill" id="budget-status-text">Feasibility status...</div>
+            </div>
+
+            <div id="budget-warning-container" style="display: none;">
+              <!-- cost suggestions -->
+            </div>
+
+            <!-- Auto-Optimize Quick Action -->
+            <button class="btn btn-secondary btn-sm" id="auto-optimize-btn" onclick="app.executeAutoBudgetOptimization()" style="width: 100%; margin-bottom: 1.25rem; justify-content: center; display: none; background-color: var(--accent-green-light); color: var(--accent-green); border-color: hsl(142, 30%, 82%); border-radius: 20px; font-weight: 700; font-size: 0.85rem; gap: 0.4rem;">
+              ⚡ Auto-Optimize Budget Swaps
+            </button>
+
+            <div class="budget-details" style="margin-bottom: 0;">
+              <div class="budget-detail-item">
+                <div class="budget-detail-val" id="budget-limit-val">$20.00</div>
+                <div class="budget-detail-lbl">Limit</div>
+              </div>
+              <div class="budget-detail-item">
+                <div class="budget-detail-val" id="budget-variance-val">+$0.00</div>
+                <div class="budget-detail-lbl">Variance</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Harmony Score Gauge -->
+          <div class="sidebar-card" id="harmony-sidebar-card">
+            <h3 class="brand-font" style="font-size: 1.3rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+              🧬 Harmony Alignment
+            </h3>
+            <div class="harmony-gauge-container" style="position: relative; width: 140px; height: 140px; margin: 0 auto 1.25rem; display: flex; align-items: center; justify-content: center;">
+              <svg class="harmony-svg" viewBox="0 0 100 100" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                <circle class="harmony-circle-bg" cx="50" cy="50" r="42" style="fill: none; stroke: var(--border-color); stroke-width: 8;"></circle>
+                <circle class="harmony-circle-fill" id="harmony-gauge-fill" cx="50" cy="50" r="42" style="fill: none; stroke: var(--primary); stroke-width: 8; stroke-dasharray: 264; stroke-dashoffset: 264; stroke-linecap: round; transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);"></circle>
+              </svg>
+              <div class="harmony-gauge-text" style="position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                <span class="harmony-percent" id="harmony-score-val" style="font-size: 1.8rem; font-weight: 750; color: var(--text-main);">0%</span>
+                <span class="harmony-lbl" style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Synergy</span>
+              </div>
+            </div>
+            <div class="harmony-breakdown" id="harmony-breakdown-details" style="font-size: 0.82rem; margin-top: 1rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 0.85rem; display: flex; flex-direction: column; gap: 0.4rem;">
+              <!-- Breakdown scores -->
+            </div>
+          </div>
+
+          <!-- Section 4: Kitchen Soundtrack Player -->
+          <div class="sidebar-card" id="playlist-sidebar-card">
+            <h3 class="brand-font" style="font-size: 1.3rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              🎵 Kitchen Soundtrack
+            </h3>
+            <div class="music-player-card">
+              <div class="music-player-upper" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 0.85rem;">
+                <div class="music-vinyl-container" style="position: relative; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background-color: #111; border-radius: 50%; border: 3px solid #333; box-shadow: var(--shadow-sm);">
+                  <div class="music-vinyl" id="music-vinyl-disc" style="font-size: 1.8rem; line-height: 1; transition: transform 0.5s linear;">💿</div>
+                  <div style="position: absolute; width: 12px; height: 12px; background-color: var(--bg-surface); border-radius: 50%; border: 2px solid #111;"></div>
+                </div>
+                <div class="music-track-info" style="flex-grow: 1; min-width: 0;">
+                  <div class="music-track-title" id="music-title" style="font-weight: 700; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main);">Select a plan</div>
+                  <div class="music-track-artist" id="music-artist" style="font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.2rem;">to load music</div>
+                  <div class="music-player-equalizer" id="music-eq" style="display: flex; gap: 3px; height: 12px; align-items: flex-end;">
+                    <span class="eq-bar bar-1"></span>
+                    <span class="eq-bar bar-2"></span>
+                    <span class="eq-bar bar-3"></span>
+                    <span class="eq-bar bar-4"></span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="music-progress-bar-bg" onclick="app.seekMusic(event)" style="width: 100%; height: 6px; background-color: hsl(24, 15%, 88%); border-radius: 4px; overflow: hidden; cursor: pointer; position: relative;">
+                <div class="music-progress-bar-fill" id="music-progress" style="width: 0%; height: 100%; background-color: var(--primary); border-radius: 4px; transition: width 0.1s linear;"></div>
+              </div>
+              <div class="music-time-row" style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem; font-weight: 600;">
+                <span id="music-time-curr">0:00</span>
+                <span id="music-time-total">3:30</span>
+              </div>
+              
+              <div class="music-controls" style="display: flex; justify-content: center; gap: 1rem; margin-top: 0.75rem; align-items: center;">
+                <button class="music-ctrl-btn" onclick="app.prevTrack()" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; padding: 0.25rem;">⏮️</button>
+                <button class="music-play-btn" id="music-play-toggle" onclick="app.toggleMusic()" style="background: var(--primary); border: none; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; box-shadow: 0 4px 10px rgba(229, 90, 31, 0.3); font-size: 1.05rem;">▶️</button>
+                <button class="music-ctrl-btn" onclick="app.nextTrack()" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; padding: 0.25rem;">⏭️</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Medical Disclaimer Card -->
+      <div class="disclaimer-card" style="margin-top: 3rem;">
+        <span class="disclaimer-icon">⚕️</span>
+        <div class="disclaimer-text">
+          <h4>Medical Disclaimer Notice</h4>
+          <p>MoodMeal AI compiles culinary targets and traditional Ayurvedic insights. We are not a medical device, licensed doctor, or professional nutritionist. Please consult your physician or registered dietitian for custom medical conditions.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Sticky Footer Disclaimer -->
+  <footer class="footer-disclaimer">
+    <p>MoodMeal AI — Built as a fitness and Ayurvedic nutrition assistant. Traditional Ayurveda is for general wellness guidance only. &copy; 2026. All rights reserved.</p>
+  </footer>
+
+  <!-- MODAL 1: Recipe Details Modal -->
+  <div class="modal-overlay" id="recipe-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title brand-font" id="recipe-modal-title">Recipe Details</h3>
+        <button class="modal-close" onclick="app.closeRecipeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="meal-meta" style="margin-bottom: 1.5rem; justify-content: flex-start; gap: 1.5rem;">
+          <span id="recipe-modal-prep">⏱️ -- mins prep</span>
+          <span id="recipe-modal-cost">💰 -- cost</span>
+          <span id="recipe-modal-macros" style="font-weight: 600; color: var(--accent-green);">💪 --g P / --g C</span>
+        </div>
+        
+        <h4 style="margin-bottom: 0.5rem; font-weight: 600;">🌿 Nutritionist Note</h4>
+        <p id="recipe-modal-nut" style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-muted);"></p>
+        <p id="recipe-modal-ayur" style="font-size: 0.95rem; margin-bottom: 1.5rem; padding: 0.75rem; background-color: var(--secondary-light); border-radius: var(--border-radius-sm); border-left: 3px solid var(--secondary);"></p>
+        
+        <h4 style="margin-bottom: 0.5rem; font-weight: 600;">🛒 Ingredients Required</h4>
+        <ul class="recipe-ingredient-list" id="recipe-modal-ingredients">
+          <!-- Populated dynamically -->
+        </ul>
+
+        <h4 style="margin-bottom: 0.5rem; font-weight: 600;">🍳 Preparation Method</h4>
+        <ol class="recipe-instruction-list" id="recipe-modal-instructions">
+          <!-- Populated dynamically -->
+        </ol>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="app.closeRecipeModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Ingredient Substitution Modal -->
+  <div class="modal-overlay" id="swap-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title brand-font">Swap Ingredient</h3>
+        <button class="modal-close" onclick="app.closeSwapModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Choose an alternative for <strong id="swap-target-name">Ingredient</strong> in the recipe. Plain-English trade-offs:</p>
+        
+        <div id="swap-options-container">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="app.closeSwapModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loader-overlay" id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loader-text">Nourishing targets: Consultation in progress...</div>
+  </div>
+
+  <!-- App Logic Scripts -->
+  <script src="recipes.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
